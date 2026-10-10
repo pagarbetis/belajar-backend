@@ -47,11 +47,11 @@ export const getAllUser = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const user = pool.query(
+    const [user] = await pool.query(
       "SELECT id, name, email, is_active FROM users WHERE id= ?",
       [id],
     );
-    if (!user) {
+    if (user.length === 0) {
       res.status(404).json({
         status: false,
         message: "User not found",
@@ -132,7 +132,7 @@ export const deleteUser = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "Delete user success",
-      data: user,
+      data: result,
     });
   } catch (error) {
     return res.status(500).json({
