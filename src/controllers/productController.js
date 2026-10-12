@@ -4,7 +4,7 @@ import pool from "../config/db.js";
 export const getAllProduct = async (req, res) => {
   try {
     const [product] = await pool.query(
-      "SELECT *, categories.nama AS category_name FROM product LEFT JOIN categories ON product.category_id = categories.id",
+      "SELECT product.*, categories.nama AS category_name FROM product LEFT JOIN categories ON product.category_id = categories.id",
     );
     return res.status(200).json({
       status: true,
@@ -81,11 +81,11 @@ export const createProduct = async (req, res) => {
 // Update
 export const updateProduct = async (req, res) => {
   const id = parseInt(req.params.id);
-  const { nama, price, description, is_active } = req.body;
+  const { nama, price,stock, description, is_active } = req.body;
   try {
     const [result] = await pool.query(
-      "UPDATE product SET nama=?, price=?, description=?, is_active=? WHERE id=?",
-      [nama, price, description, is_active, id],
+      "UPDATE product SET nama=?, price=?,stock=?, description=?, is_active=? WHERE id=?",
+      [nama, price,stock, description, is_active, id],
     );
     return res.status(200).json({
       status: true,

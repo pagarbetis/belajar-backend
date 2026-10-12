@@ -1,4 +1,3 @@
-
 const USERS = [
   {
     nama: "Angga",
@@ -8,13 +7,19 @@ const USERS = [
 ];
 
 export const login = (req, res) => {
+  // Antisipasi kalau req.body bener-bener undefined/kosong
+  if (!req.body) {
+    return res.status(400).json({
+      status: false,
+      message: "Body request tidak boleh kosong, tolol! Pake format JSON ya.",
+    });
+  }
+
   const { email, password } = req.body;
 
   if (!email || !password) {
-    // 400: bad response (browser)
-    // 500: server error
-    // 200: success
-    res.status(400).json({
+    // WAJIB PAKAI RETURN SUPAYA GA LANJUT EKSEKUSI KE BAWAH!
+    return res.status(400).json({
       status: false,
       message: "Email atau Password required",
     });
@@ -29,16 +34,16 @@ export const login = (req, res) => {
     });
   }
 
-  res.status(200).json({
+  return res.status(200).json({
     status: true,
     message: "Login Success",
     data: {
       user: {
-        id: user.id,
+        id: user.id || 1, // Antisipasi kalau id-nya undefined
         name: user.nama,
         email: user.email,
       },
-      token: `jwt-token-123 ${user.id} - ${Date.now()}`,
+      token: `jwt-token-123 - ${Date.now()}`,
     },
   });
 };
