@@ -1,3 +1,6 @@
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import pool from "../config/db.js";
 const USERS = [
   {
     nama: "Angga",
@@ -6,9 +9,9 @@ const USERS = [
   },
 ];
 
-export const login = (req, res) => {
+export const login = async (req, res) => {
   // Antisipasi kalau req.body bener-bener undefined/kosong
-  if (!req.body) {
+  if (!req.body || Object.keys(req.body).length === 0) {
     return res.status(400).json({
       status: false,
       message: "Body request tidak boleh kosong, tolol! Pake format JSON ya.",
@@ -25,8 +28,22 @@ export const login = (req, res) => {
     });
   }
 
-  const user = USERS.find((u) => u.email === email && u.password === password);
-  if (!user) {
+  // const user = USERS.find((u) => u.email === email && u.password === password);
+  const [user] = await pool.query(
+    "SELECT id, name, email, password FROM users WHERE email= ?",
+    [email],
+  );
+  if (user.length === 0) {
+    return res.status(401).json({
+      status: false,
+      message: "Invalid credential",
+    });
+  }
+
+  const dataUser = user[0];
+  const isMatch = await bcrypt.compare(password, dataUser.password);
+
+  if (!isMatch) {
     // 401: unauthorize
     return res.status(401).json({
       status: false,
@@ -34,16 +51,26 @@ export const login = (req, res) => {
     });
   }
 
+  const token = jwt.sign(
+    {
+      id: dataUser.id,
+      nama: dataUser.name,
+      email: dataUser.email,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || "1d" },
+  );
+
   return res.status(200).json({
     status: true,
     message: "Login Success",
     data: {
       user: {
-        id: user.id || 1, // Antisipasi kalau id-nya undefined
-        name: user.nama,
-        email: user.email,
+        id: dataUser.id || 1, // Antisipasi kalau id-nya undefined
+        name: dataUser.name,
+        email: dataUser.email,
       },
-      token: `jwt-token-123 - ${Date.now()}`,
+      token,
     },
   });
 };
