@@ -25,7 +25,7 @@ export const getCategoryById = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const [categories] = await pool.query(
-      "SELECT id, nama FROM categories WHERE id= ?",
+      "SELECT id, name FROM categories WHERE id= ?",
       [id],
     );
     if (categories.length === 0) {
@@ -50,12 +50,12 @@ export const getCategoryById = async (req, res) => {
 
 // create
 export const createCategory = async (req, res) => {
-  const { nama } = req.body;
+  const { name } = req.body;
 
   try {
     const [categories] = await pool.query(
-      "INSERT INTO categories(nama) VALUES (?)",
-      [nama],
+      "INSERT INTO categories(name) VALUES (?)",
+      [name],
     );
     return res.status(200).json({
       status: true,
@@ -80,11 +80,11 @@ export const createCategory = async (req, res) => {
 // Update
 export const updateCategory = async (req, res) => {
   const id = parseInt(req.params.id);
-  const { nama } = req.body;
+  const { name } = req.body;
   try {
     const [result] = await pool.query(
-      "UPDATE categories SET nama=? WHERE id=?",
-      [nama, id],
+      "UPDATE categories SET name=? WHERE id=?",
+      [name, id],
     );
     return res.status(200).json({
       status: true,

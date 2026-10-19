@@ -4,7 +4,7 @@ import pool from "../config/db.js";
 export const getAllProduct = async (req, res) => {
   try {
     const [product] = await pool.query(
-      "SELECT product.*, categories.nama AS category_name FROM product LEFT JOIN categories ON product.category_id = categories.id",
+      "SELECT product.*, categories.name AS category_name FROM product LEFT JOIN categories ON product.category_id = categories.id",
     );
     return res.status(200).json({
       status: true,
