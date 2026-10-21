@@ -15,6 +15,8 @@ export const createTransaction = async (req, res) => {
       items = [],
       pay = 0,
     } = req.body;
+
+    const userId = req.user?.id;
     await connection.beginTransaction();
 
     const isMidtrans =
@@ -36,14 +38,11 @@ export const createTransaction = async (req, res) => {
       status = "Settlement";
     }
 
-    
-    // const userId = req.user?.id;
-
     // const orderNumber = await generateOrdernumber(connection);
     // console.log("order number", orderNumber);
     const [transaction] = await pool.query(
       "INSERT INTO orders (order_number, user_id, payment_method, subtotal, tax, total, pay, status) VALUES (?,?,?,?,?,?,?,?)",
-      [order_number, user_id, payment_method, subtotal, tax, total, pay, status],
+      [order_number, userId, payment_method, subtotal, tax, total, pay, status],
     );
     const orderId = transaction.insertId;
 
@@ -62,6 +61,9 @@ export const createTransaction = async (req, res) => {
         transaction_details: {
           order_id: order_number,
           gross_amount: subtotal,
+        },
+        callbacks: {
+          finish: "http://localhost:5173/transaction/print",
         },
         enable_payments: ["gopay"],
         item_details: items.map((item) => ({
@@ -82,11 +84,14 @@ export const createTransaction = async (req, res) => {
           : "payment cash berhasil",
       order_id: orderId,
       order_number: order_number,
-      payment_details: payment_method == 2 ? {
-        total: Number(total),
-        cashReceive: cashReceive,
-        change: change,
-      } : null,
+      payment_details:
+        payment_method == 2
+          ? {
+              total: Number(total),
+              cashReceive: cashReceive,
+              change: change,
+            }
+          : null,
       payment_gateway: midtransResponse
         ? {
             token: midtransResponse.token,
