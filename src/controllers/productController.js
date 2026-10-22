@@ -51,12 +51,12 @@ export const getProductById = async (req, res) => {
 
 // create
 export const createProduct = async (req, res) => {
-  const { category_id, nama, price,stock, description, is_active } = req.body;
+  const { category_id, nama, price, stock, description, is_active } = req.body;
 
   try {
     const [product] = await pool.query(
       "INSERT INTO product(category_id, nama, price,stock, description, is_active) VALUES (?, ?, ?, ?, ?,?)",
-      [category_id, nama, price,stock, description, is_active],
+      [category_id, nama, price, stock, description, is_active],
     );
     return res.status(200).json({
       status: true,
@@ -81,11 +81,11 @@ export const createProduct = async (req, res) => {
 // Update
 export const updateProduct = async (req, res) => {
   const id = parseInt(req.params.id);
-  const { nama, price,stock, description, is_active } = req.body;
+  const { nama, price, stock, description, is_active } = req.body;
   try {
     const [result] = await pool.query(
       "UPDATE product SET nama=?, price=?,stock=?, description=?, is_active=? WHERE id=?",
-      [nama, price,stock, description, is_active, id],
+      [nama, price, stock, description, is_active, id],
     );
     return res.status(200).json({
       status: true,

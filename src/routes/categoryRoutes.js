@@ -6,13 +6,15 @@ import {
   updateCategory,
   deleteCategory,
 } from "../controllers/CategoryController.js";
+import { createCategorySchema, updateCategorySchema } from "../validations/categoryValidation.js";
+import { validate } from "../middlewares/validationMiddleware.js";
 
 const router = Router();
 
 router.get("/", getAllCategories);
 router.get("/:id", getCategoryById);
-router.post("/", createCategory);
-router.put("/:id", updateCategory);
+router.post("/", validate(createCategorySchema), createCategory);
+router.put("/:id", validate(updateCategorySchema), updateCategory);
 router.delete("/:id", deleteCategory);
 
 export default router;
