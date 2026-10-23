@@ -1,5 +1,5 @@
 export const validate = (schema) => (req, res, next) => {
-  const { error, value } = schema.validate(req.body, { aboutEarly: false });
+  const { error, value } = schema.validate(req.body, { abortEarly: false });
 
   if (error) {
     const formattedErrors = error.details.map((detail) => ({
