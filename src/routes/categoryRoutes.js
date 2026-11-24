@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { verifyToken, authorizeRole } from "../middlewares/middleware.js";
 import {
   getAllCategories,
   getCategoryById,
@@ -9,10 +10,10 @@ import {
 
 const router = Router();
 
-router.get("/", getAllCategories);
-router.get("/:id", getCategoryById);
-router.post("/", createCategory);
-router.put("/:id", updateCategory);
-router.delete("/:id", deleteCategory);
+router.get("/", verifyToken, authorizeRole("ADMIN", "CASHIER"), getAllCategories);
+router.get("/:id", verifyToken, authorizeRole("ADMIN", "CASHIER"), getCategoryById);
+router.post("/", verifyToken, authorizeRole("ADMIN"), createCategory);
+router.put("/:id", verifyToken, authorizeRole("ADMIN"), updateCategory);
+router.delete("/:id", verifyToken, authorizeRole("ADMIN"), deleteCategory);
 
 export default router;

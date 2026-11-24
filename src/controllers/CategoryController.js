@@ -1,11 +1,12 @@
-import pool from "../config/db.js";
+import { prisma } from "../lib/prisma.js";
 
-// read
+// read all
 export const getAllCategories = async (req, res) => {
   try {
-    const [categories] = await pool.query(
-      "SELECT * FROM categories ORDER BY id DESC",
-    );
+    const categories = await prisma.category.findMany({
+      orderBy: { id: "desc" },
+    });
+
     return res.status(200).json({
       status: true,
       message: "Fetch categories success",
@@ -21,28 +22,38 @@ export const getAllCategories = async (req, res) => {
   }
 };
 
+// read by id
 export const getCategoryById = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    const [categories] = await pool.query(
-      "SELECT id, name FROM categories WHERE id= ?",
-      [id],
-    );
-    if (categories.length === 0) {
-      res.status(404).json({
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid category id",
+      });
+    }
+
+    const category = await prisma.category.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    });
+
+    if (!category) {
+      return res.status(404).json({
         status: false,
         message: "Categories not found",
       });
     }
-    res.status(200).json({
+
+    return res.status(200).json({
       status: true,
       message: "Categories found",
-      data: categories,
+      data: category,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       status: false,
-      message: "Fetch categoires failed",
+      message: "Fetch categories failed",
       error: error.message,
     });
   }
@@ -53,22 +64,30 @@ export const createCategory = async (req, res) => {
   const { name } = req.body;
 
   try {
-    const [categories] = await pool.query(
-      "INSERT INTO categories(name) VALUES (?)",
-      [name],
-    );
-    return res.status(200).json({
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        status: false,
+        message: "Category name is required",
+      });
+    }
+
+    const category = await prisma.category.create({
+      data: { name: name.trim() },
+    });
+
+    return res.status(201).json({
       status: true,
-      message: "Fetch categories success",
-      data: { id: categories.insertId, nama },
+      message: "Create categories success",
+      data: category,
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "P2002") {
       return res.status(400).json({
         status: false,
         message: "Categories name is already exist",
       });
     }
+
     return res.status(500).json({
       status: false,
       message: "Create categories failed",
@@ -77,21 +96,51 @@ export const createCategory = async (req, res) => {
   }
 };
 
-// Update
+// update
 export const updateCategory = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = Number(req.params.id);
   const { name } = req.body;
+
   try {
-    const [result] = await pool.query(
-      "UPDATE categories SET name=? WHERE id=?",
-      [name, id],
-    );
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid category id",
+      });
+    }
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        status: false,
+        message: "Category name is required",
+      });
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: { name: name.trim() },
+    });
+
     return res.status(200).json({
       status: true,
       message: "Update categories success",
-      data: result,
+      data: category,
     });
   } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({
+        status: false,
+        message: "Categories not found",
+      });
+    }
+
+    if (error.code === "P2002") {
+      return res.status(400).json({
+        status: false,
+        message: "Categories name is already exist",
+      });
+    }
+
     return res.status(500).json({
       status: false,
       message: "Update categories failed",
@@ -100,26 +149,42 @@ export const updateCategory = async (req, res) => {
   }
 };
 
-// Delete
+// delete
 export const deleteCategory = async (req, res) => {
-  const id = parseInt(req.params.id);
-  try {
-    const [result] = await pool.query("DELETE FROM categories WHERE id=? ", [
-      id,
-    ]);
+  const id = Number(req.params.id);
 
-    if (result.affectedRows === 0) {
+  try {
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid category id",
+      });
+    }
+
+    const deleted = await prisma.category.delete({
+      where: { id },
+    });
+
+    return res.status(200).json({
+      status: true,
+      message: "Delete categories success",
+      data: deleted,
+    });
+  } catch (error) {
+    if (error.code === "P2025") {
       return res.status(404).json({
         status: false,
         message: "Categories not found",
       });
     }
-    return res.status(200).json({
-      status: true,
-      message: "Delete categories success",
-      data: result,
-    });
-  } catch (error) {
+
+    if (error.code === "P2003") {
+      return res.status(400).json({
+        status: false,
+        message: "Category is still used by products",
+      });
+    }
+
     return res.status(500).json({
       status: false,
       message: "Delete categories failed",

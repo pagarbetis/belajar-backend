@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { verifyToken, authorizeRole } from "../middlewares/middleware.js";
 import {
   getAllProduct,
   getProductById,
@@ -9,10 +10,10 @@ import {
 
 const router = Router();
 
-router.get("/", getAllProduct);
-router.get("/:id", getProductById);
-router.post("/", createProduct);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+router.get("/", verifyToken, authorizeRole("ADMIN", "CASHIER"), getAllProduct);
+router.get("/:id", verifyToken, authorizeRole("ADMIN", "CASHIER"), getProductById);
+router.post("/", verifyToken, authorizeRole("ADMIN"), createProduct);
+router.put("/:id", verifyToken, authorizeRole("ADMIN"), updateProduct);
+router.delete("/:id", verifyToken, authorizeRole("ADMIN"), deleteProduct);
 
 export default router;
