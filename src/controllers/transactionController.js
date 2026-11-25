@@ -411,7 +411,7 @@ export const continueTransaction = async (req, res) => {
         gross_amount: grossAmount,
       },
       callbacks: {
-        finish: `${process.env.FRONTEND_URL || "http://localhost:5173"}/transaction/print?order_id=${encodeURIComponent(order.orderNumber)}`,
+        finish: `${process.env.FRONTEND_URL || "https://warung-madara-fe.vercel.app"}/transaction/print?order_id=${encodeURIComponent(order.orderNumber)}`,
       },
       enable_payments: ["gopay"],
       item_details: itemDetails,
